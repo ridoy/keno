@@ -8,61 +8,61 @@ Various experiments on drawings data
 import json
 
 class KenoAnalysis:
-
-    # Drawings data should be in format {"gamenum": [num,num,...num]}
-    # Drawings history between games 2098753 and 2163865
-    drawings_data_file = 'data/drawings.json'
+    drawings_data_file = 'data/drawings.json' # Drawings history between games 2098753 and 2163865
 
     def load_drawings(self):
+        """
+        Initialize drawings record
+        Drawings data should be in format {"gamenum": [num,num,...num]}
+        """
         print('Loading 6 month drawings history...')
         f = open(self.drawings_data_file, 'r')
         self.data = json.loads(f.read())
+        self.data = {int(k):v for k,v in self.data.items()}
         self.num_games = len(self.data)
         self.first_game_index = min(self.data.keys())
         self.last_game_index = max(self.data.keys())
         print('Loaded.')
 
-    def print_all(self, data):
+    def print_all(self, limit):
+        """
+        Print dataset up to limit
+        :param int limit: number of items to print
+        """
         i = 0
         for key,value in self.data.items():
             print(key,value);
-            if (i > 20):
+            i += 1
+            if (i > limit):
                 break
 
-    # experiment 1: % chance of 1-80 in next draw given n was in a previous draw
-    # use n=1 to start
-    # if n=1 present, check next game, increment odds
-    def experiment_one(self):
-
-        '''
-        for key,value in data.items():
-            for num in value:
-                pct_next_draw[int(num)] += 1
-        '''
-
-        counts = [0 for x in range(1,81)]
+    def get_counts(self):
+        """
+        Return dict of frequencies of drawn numbers 1-80 in dataset
+        """
+        counts = {k: 0 for k in range(1,81)}
         for game,draws in self.data.items():
             for draw in draws:
                 counts[int(draw)] += 1
-        print(counts)
+        return counts
 
-    def old_stuff():
-        first_game_index = 2098753
-        last_game_index = 2163853
-        count_next_draw = {}
+    def old_stuff(self):
+        counts = self.get_counts()
+        # experiment 1: % chance of 1-80 in next draw given n was in a previous draw
+        # use n=1 to start
+        # if n=1 present, check next game, increment odds
+        count_next_draw = {k: 0 for k in range(1,81)}
         pct_next_draw = {}
-
-        for i in range(1,81):
-            count_next_draw[i] = 0
+        print(type(self.first_game_index))
         # creates mapping from number and percent each number will be drawn the next game
         for n in range(1,81):
             count_next_draw[n] = {}
             for i in range(1,81):
                 count_next_draw[n][i] = 0
-            for i in range(first_game_index, last_game_index):
+            for i in range(self.first_game_index, self.last_game_index):
                 # if n=1 present, check next game, increment odds
-                if (str(n) in data[str(i)]):
-                    for num in data[str(i+1)]:
+                if (str(n) in self.data[i]):
+                    for num in self.data[i+1]:
                         count_next_draw[n][int(num)] += 1
 
         with open('exp1.json', 'w') as f:
@@ -93,3 +93,4 @@ class KenoAnalysis:
 
 keno = KenoAnalysis()
 keno.load_drawings()
+keno.old_stuff()
